@@ -33,13 +33,13 @@ data.gen.Fs = Fs;
 %The following for-loop will run the behavior analysis on each sweep in the
 %acquisition
 for n = 1:nAcq
-    L = size(data.acq(n).time,1);
-    L = length(1:dsRate:L);
     wheel = data.acq(n).wheel;
     if sigEdge ~= 0
         wheel = wheel((sigEdge*rawFs)+1:end-(sigEdge*rawFs));
     end
     wheel = unwrapBeh(wheel);
+    L = size(data.acq(n).time,1);
+    L = length(1:dsRate:L);
     if size(wheel,1) == 1
         wheel = wheel';
     end
