@@ -25,8 +25,6 @@ rawFs = data.gen.acqFs;
 Fs = rawFs/dsRate;
 data.gen.Fs = Fs;
 for n = 1:nAcq
-    L = size(data.acq(n).time,1);
-    L = length(1:dsRate:L);
     lick = data.acq(n).lick.trace;
     rewDelivery = data.acq(n).rew.trace;
     
@@ -34,13 +32,19 @@ for n = 1:nAcq
         lick = lick((sigEdge*rawFs)+1:end-(sigEdge*rawFs));
         rewDelivery = rewDelivery((sigEdge*rawFs)+1:end-(sigEdge*rawFs));
     end
+    L = size(lick);
+    L = length(1:dsRate:L);
     
-    lick = lick(1:dsRate:end);
-    rewDelivery = rewDelivery(1:dsRate:end);
-    data.final(n).lick.trace = lick;
-    [data.final(n).lick.onset,~] = getPulseOnsetOffset(lick,0.5);
-    data.final(n).rew.trace = rewDelivery;
-    [~,data.final(n).rew.offset] = getPulseOnsetOffset(rewDelivery,0.5);
+    lickOnset = getPulseOnsetOffset(lick, 0.5);
+    data.final(n).lick.onset = lickOnset./dsRate;
+
+    rewOnset = getPulseOnsetOffset(rewDelivery, 0.5);
+    data.final(n).rew.cue = rewOnset(1:2:end)./dsRate; % Cue is first of two sequential digital inputs to NI board from Arduino
+    data.final(n).rew.delivery = rewOnset(2:2:end)./dsRate; % Reward is second of two sequential digital inputs to NI board from Arduino
+
+    data.final(n).lick.trace = lick(1:dsRate:end); % Downsampled lick trace
+    data.final(n).rew.trace = rewDelivery(1:dsRate:end); % Downsampled cue/reward trace
+
     timeVec = [1:L]/Fs;
     data.final(n).time = timeVec';
     %{
